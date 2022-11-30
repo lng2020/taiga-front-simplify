@@ -1,0 +1,27 @@
+<html>
+	<head>
+		<script src="js/webrtcstreamer.js"></script>
+		<script scrc="js/adpater.min.js"></script>
+		<script>
+			//     // 接受从vue组件中传过来的参数
+			var url = location.search; //这一条语句获取了包括问号开始到参数的最后，不包括前面的路径
+			var params = url.substr(1); //去掉问号
+			var pa = params.split("&");
+			var s = new Object();
+			for (var i = 0; i < pa.length; i++) {
+				s[pa[i].split("=")[0]] = unescape(pa[i].split("=")[1]);
+			}
+			console.log(s.data)
+			window.onload = function() {
+				webRtcServer = new WebRtcStreamer("video",null);
+				webRtcServer.connect("rtsp://rtsp.stream/pattern");
+			}
+			window.onbeforeunload = function() {
+				webRtcServer.disconnect();
+			}
+		</script>
+	</head>
+	<body>
+		<video id="video" style="width: 1000px;height: 800px;" controls muted playsinline></video>
+	</body>
+</html>
