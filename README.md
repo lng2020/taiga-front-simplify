@@ -1,1 +1,1 @@
-# taiga-front-simpliyf
+# taiga-front-simplify
