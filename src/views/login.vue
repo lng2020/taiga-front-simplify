@@ -1,10 +1,11 @@
 <template>
     <div class="login-wrap">
       <div class="ms-login">
-        <div class="ms-title">项目管理系统</div>
+        <h1 class="ms-title">项目管理系统</h1>
+        <div class="ms-title">Login</div>
         <el-form :model="param" :rules="rules" ref="login" label-width="0px" class="ms-content">
           <el-form-item prop="username">
-            <el-input v-model="param.username" placeholder="用户名">
+            <el-input v-model="param.username" placeholder="please enter your username">
               <template #prepend>
                 <el-button :icon="User"></el-button>
               </template>
@@ -13,7 +14,7 @@
           <el-form-item prop="password">
             <el-input
                 type="password"
-                placeholder="密码"
+                placeholder="please enter your password"
                 v-model="param.password"
                 @keyup.enter="submitForm(login)"
             >
@@ -23,11 +24,11 @@
             </el-input>
           </el-form-item>
           <div class="login-btn">
-            <el-button type="primary" @click="submitForm(login)">登录</el-button>
+            <el-button type="primary" @click="submitForm(login)">login</el-button>
           </div>
           <router-link to="/register">
             <div class="register-btn">
-              <el-button type="primary">注册</el-button>
+              <el-button type="primary">register</el-button>
             </div>
           </router-link>
           <!--				<p class="login-tips">Tips : 用户名和密码随便填。</p>-->
@@ -35,28 +36,27 @@
       </div>
     </div>
   </template>
-  
+
   <script setup lang="ts">
   import {ref, reactive} from 'vue';
   import {useTagsStore} from '../store/tags';
-  import {usePermissStore} from '../store/permiss';
   import {useRouter} from 'vue-router';
   import {ElMessage} from 'element-plus';
   import type {FormInstance, FormRules} from 'element-plus';
   import {Lock, User} from '@element-plus/icons-vue';
   import request from '../utils/request'
-  
+
   interface LoginInfo {
     username: string;
     password: string;
   }
-  
+
   const router = useRouter();
   const param = reactive<LoginInfo>({
     username: 'admin',
     password: '123123'
   });
-  
+
   const rules: FormRules = {
     username: [
       {
@@ -67,7 +67,6 @@
     ],
     password: [{required: true, message: '请输入密码', trigger: 'blur'}]
   };
-  const permiss = usePermissStore();
   const login = ref<FormInstance>();
   const submitForm = (formEl: FormInstance | undefined) => {
     if (!formEl) return;
@@ -81,6 +80,7 @@
         request.post('/auth', data).then((res) => {
           ElMessage.success('登录成功');
           localStorage.setItem('user_id', res.data.id);
+          localStorage.setItem('token', res.data.auth_token);
           router.replace('/');
         }).catch((e) => {
           // ElMessage.error('登录失败');
@@ -92,11 +92,11 @@
       }
     });
   };
-  
+
   const tags = useTagsStore();
   tags.clearTags();
   </script>
-  
+
   <style scoped>
   .login-wrap {
     position: relative;
@@ -105,7 +105,7 @@
     background-image: url(../assets/img/login-bg.jpg);
     background-size: 100%;
   }
-  
+
   .ms-title {
     width: 100%;
     line-height: 50px;
@@ -114,7 +114,7 @@
     color: #000;
     border-bottom: 1px solid #ddd;
   }
-  
+
   .ms-login {
     position: absolute;
     left: 50%;
@@ -125,35 +125,34 @@
     background: rgba(255, 255, 255, 0.3);
     overflow: hidden;
   }
-  
+
   .ms-content {
     padding: 30px 30px;
   }
-  
+
   .login-btn {
     text-align: center;
   }
-  
+
   .login-btn button {
     width: 100%;
     height: 36px;
     margin-bottom: 10px;
   }
-  
+
   .register-btn {
     text-align: center;
   }
-  
+
   .register-btn button {
     width: 100%;
     height: 36px;
     margin-bottom: 10px;
   }
-  
+
   .login-tips {
     font-size: 12px;
     line-height: 30px;
     color: #fff;
   }
   </style>
-  

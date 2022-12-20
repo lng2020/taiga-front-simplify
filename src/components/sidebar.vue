@@ -11,12 +11,29 @@
 			router
 		>
 			<template v-for="item in items" :key="item.index">
-					<el-menu-item :index="item.index" >
+				<template v-if="item.subs">
+					<el-sub-menu :index="item.index" :key="item.index">
+						<template #title>
+							<el-icon>
+								<component :is="item.icon"></component>
+							</el-icon>
+							<span>{{ item.title }}</span>
+						</template>
+						<template v-for="subItem in item.subs">
+							<el-menu-item :index="subItem.index">
+								{{ subItem.title }}
+							</el-menu-item>
+						</template>
+					</el-sub-menu>
+				</template>
+				<template v-else>
+					<el-menu-item :index="item.index" :key="item.index">
 						<el-icon>
 							<component :is="item.icon"></component>
 						</el-icon>
 						<template #title>{{ item.title }}</template>
 					</el-menu-item>
+				</template>
 			</template>
 		</el-menu>
 	</div>
@@ -47,11 +64,21 @@ const items = [
 		icon: 'PieChart',
 		index: '/issue',
 		title: 'issue',
-	},	
+	},
 	{
 		icon: 'Setting',
 		index: '/settings',
 		title: 'settings',
+		subs: [
+			{
+				index: '/project',
+				title: 'project',
+			},
+			{
+				index: '/members',
+				title: 'members',
+			}
+		]
 	},
 ];
 

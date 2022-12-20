@@ -1,5 +1,4 @@
 import {createRouter, createWebHashHistory, RouteRecordRaw} from "vue-router";
-import {usePermissStore} from '../store/permiss'
 import home from "../views/home.vue";
 import login from "../views/login.vue";
 
@@ -47,15 +46,39 @@ const routes: RouteRecordRaw[] = [
                     title: 'issue'
                 },
                 component: () => import (/* webpackChunkName: "user" */ '../views/issue.vue')
-            }, {
-                path: '/settings',
-                name: 'settings',
-                meta: {
-                    title: 'settings'
+            },{
+                path:'/issuedetail',
+                name:'issuedetail',
+                meta:{
+                    title:'issuedetail'
                 },
-                component: () => import (/* webpackChunkName: "user" */ '../views/settings.vue')
-            }, 
-        ]    
+                component:()=>import('../views/issuedetail.vue')
+            },
+            {
+                path: '/project',
+                name: 'project',
+                meta: {
+                    title: 'project'
+                },
+                component: () => import (/* webpackChunkName: "user" */ '../views/project.vue')
+            },
+            {
+                path: '/members',
+                name: 'members',
+                meta: {
+                    title: 'members'
+                },
+                component: () => import (/* webpackChunkName: "user" */ '../views/members.vue')
+            },
+            {
+                path:'/userstorydetail',
+                name:'userstorydetail',
+                meta:{
+                    title:'userstorydetail'
+                },
+                component:()=>import('../views/userstorydetail.vue')
+            },
+        ]
     }, {
         path: "/login",
         name: "login",
@@ -93,18 +116,6 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
     history: createWebHashHistory(),
     routes
-});
-
-router.beforeEach((to, from, next) => {
-    document.title = `${to.meta.title} | vue-manage-system`;
-    //const role = localStorage.getItem('ms_username');
-    const permiss = usePermissStore();
-    if (to.meta.permiss && !permiss.key.includes(to.meta.permiss)) {
-        // 如果没有权限，则进入403
-        next('/403');
-    } else {
-        next();
-    }
 });
 
 export default router;

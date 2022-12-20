@@ -7,10 +7,10 @@ const service: AxiosInstance = axios.create({
 
 service.interceptors.request.use(
     (config: AxiosRequestConfig) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            config.headers!.Authorization = token;
-        }
+        // const token = localStorage.getItem('Authorization');
+        // if (token) {
+        // config.headers!.Authorization = `Bearer ${token}`;
+        // }
         return config;
     },
     (error: AxiosError) => {
@@ -21,6 +21,10 @@ service.interceptors.request.use(
 
 service.interceptors.response.use(
     (response: AxiosResponse) => {
+        // const token= response.headers.Authorization;
+        // if(token){
+        //     localStorage.setItem('Authorization', token);
+        // }
         if (response.status === 200) {
             return response;
         } else {

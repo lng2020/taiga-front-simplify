@@ -46,85 +46,92 @@
 							<span>Information</span>
 						</div>
 					<div class="info">
-						<div class="info-image" @click="showDialog">
-							<el-avatar :size="100" :src="avatarImg" />
-							<span class="info-edit">
-								<i class="el-icon-lx-camerafill"></i>
-							</span>
+						<div class="info-image">
+							<img v-bind:src="userphoto1.photo"/>
 						</div>
                         <el-divider />
 						<div class="info-name">{{ name }}</div>
-                        <div>Product Owner</div>
+                        <div v-for="roles in role">
+							{{roles}}
+						</div>
                         <el-divider />
-                        <el-row :gutter="100">
-                            <el-col :span="2">4</el-col>
+                        <div>
+						<el-row :gutter="100" aglin="middle">
+                            <el-col :span="2">{{projectTotal}}</el-col>
                             <el-col :span="2">4</el-col>
                             <el-col :span="2">4</el-col>
                         </el-row>
-                        <el-row :gutter="100">
+                        <el-row :gutter="100" aglin="middle">
                             <el-col :span="2">Projects</el-col>
                             <el-col :span="2">ClosedUS</el-col>
                             <el-col :span="2">Contacts</el-col>
                         </el-row>
+						</div>
                         <el-divider />
 					</div>
 				</el-card>
 			</el-col>
             <el-col :span="12">
-                <el-tabs type="border-card">
-                <el-tab-pane label="Timeline">
-                    <el-table ::show-header="false" style="width: 100%">
-                    <!-- <el-table :data="state.unread" :show-header="false" style="width: 100%"> -->
-					<el-table-column>
-						<template #default="scope">
-							<span class="message-title">{{ scope.row.title }}</span>
-						</template>
-					</el-table-column>
-					<el-table-column prop="date" width="180"></el-table-column>
-                    </el-table>
-                </el-tab-pane>
-                <el-tab-pane label="Likes">Config</el-tab-pane>
-                <el-tab-pane label="Watched">Role</el-tab-pane>
-                <el-tab-pane label="Contacts">Task</el-tab-pane>
-            </el-tabs>
+				<el-card shadow="hover">
+					<template #header>
+						<div class="clearfix">
+							<span>Eidt your account</span>
+						</div>
+					</template>
+					<el-form label-width="90px">
+						<el-form-item label="username:"> {{ username1 }} </el-form-item>
+						<el-form-item label="full name:">
+							<el-input type="full_name" v-model="form.full_name"></el-input>
+						</el-form-item>
+						<!-- <el-form-item label="email:">
+							<el-input type="email" v-model="form.email"></el-input>
+						</el-form-item>  -->
+						<el-form-item label="language:">
+            				<el-select
+              					v-model="form.lang"
+              					placeholder="please select your language"
+            				>
+              				<el-option label="English" value="English(US)" />
+              				<el-option label="Chinese" value="中文（简体）" />
+            				</el-select> 
+							
+          				</el-form-item> 
+						  <el-form-item label="Theme:">
+            				<el-select
+              					v-model="form.theme"
+              					placeholder="please select the theme"
+            				>
+
+              				<el-option label="common" value="common" />
+            				</el-select> 
+							
+          				</el-form-item> 
+						
+						<el-form-item>
+							<el-button type="primary" @click="onSubmit">edit</el-button>
+						</el-form-item>
+					</el-form>
+				</el-card>
             </el-col>
 			<el-col :span="6">
 				<el-card shadow="hover">
 						<div class="clearfix">
 							<span>Your profile</span>
 						</div>
-                    <div>Peole can see everthing you do and what you do and what you are working on.
-                        Add a nice bio to give an enhanced version of your information.
-                    </div>
-					<el-button round>Edit Bio</el-button>
+							<el-input v-model="form2.bio" type="textarea"></el-input>
+					<div style="margin-top: 20px;align-items: center"><el-button round @click="onSubmitbio">Edit Bio</el-button></div>
+					
 				</el-card>
                 <el-card shadow="hover">
 						<div class="clearfix">
 							<span>Hint</span>
-						</div>	
+						</div>
+						<div>Did you forget what were you working on?</div>
+						<br>
+						<div>Don't worry,on your dashboard you'll find your open tasts,issues, and user stories in the order you worked on theme.</div>
 				</el-card>
 			</el-col>
 		</el-row>
-		<el-dialog title="裁剪图片" v-model="dialogVisible" width="600px">
-			<vue-cropper
-				ref="cropper"
-				:src="imgSrc"
-				:ready="cropImage"
-				:zoom="cropImage"
-				:cropmove="cropImage"
-				style="width: 100%; height: 400px"
-			></vue-cropper>
-
-			<template #footer>
-				<span class="dialog-footer">
-					<el-button class="crop-demo-btn" type="primary"
-						>选择图片
-						<input class="crop-input" type="file" name="image" accept="image/*" @change="setImage" />
-					</el-button>
-					<el-button type="primary" @click="saveAvatar">上传并保存</el-button>
-				</span>
-			</template>
-		</el-dialog>
 	</div>
 </template>
 
@@ -136,15 +143,85 @@ import avatar from '../assets/img/img.jpg';
 import { onMounted } from 'vue';
 import { useSidebarStore } from '../store/sidebar';
 import { useRouter } from 'vue-router';
+import request from "../utils/request";
+import { ElMessage, ElMessageBox } from "element-plus";
+
+const user_id = localStorage.getItem("user_id")
+const username1= localStorage.getItem("username")
+
+// username
+interface user{
+  full_name: string;
+}
+const userData = ref<user[]>([]);
+const usersdata = () => {
+  request
+    .get('/users/'+user_id)
+    .then((res) => {
+      ElMessage.success("successfully get data");
+	  console.log(user_id);
+      userData.value = res.data.full_name;
+    })
+    .catch((e) => {
+      ElMessage.error("failed to get data");
+    });
+};
+usersdata();
+const name=userData;
+// userrole
+interface userrole{
+  roles: string;
+}
+let form =reactive({});
+let form2 =reactive({});
+const userRole = ref<userrole[]>([]);
+const userroles= () => {
+	const token = localStorage.getItem("token")
+	request
+    .get('/users/'+user_id)
+    .then((res) => {
+      ElMessage.success("successfully get data");
+	  console.log(user_id);
+      userRole.value = res.data.roles;
+	  Object.assign(form,res.data)
+	  Object.assign(form2,res.data)
+	  //form2.bio='Peole can see everthing you do and what you do and what you are working on.Add a nice bio to give an enhanced version of your information.';
+	  form2.bio=res.data.bio;
+	  form.full_name=res.data.full_name;
+	  form.lang=res.data.lang;
+	  form.theme=res.data.theme;
+    })
+    .catch((e) => {
+      ElMessage.error("failed to get data");
+    });
+};
+userroles();
+const role=userRole;
 
 
-const name = localStorage.getItem('ms_username');
-const form = reactive({
-	old: '',
-	new: '',
-	desc: '不可能！我的代码怎么可能会有bug！'
-});
-const onSubmit = () => {};
+const onSubmit = () => {
+	const token = localStorage.getItem("token")
+	request
+    .patch('/users/'+user_id,JSON.stringify(form),{headers:{Authorization:`Bearer ${token}`,'content-type':'application/json'}})
+    .then((res) => {
+      ElMessage.success("successfully patch data");
+    })
+    .catch((e) => {
+      ElMessage.error("failed to patch data");
+    });
+};
+
+const onSubmitbio = () => {
+	const token = localStorage.getItem("token")
+	request
+    .patch('/users/'+user_id,JSON.stringify(form2),{headers:{Authorization:`Bearer ${token}`,'content-type':'application/json'}})
+    .then((res) => {
+      ElMessage.success("successfully patch data");
+    })
+    .catch((e) => {
+      ElMessage.error("failed to patch data");
+    });
+};
 
 const avatarImg = ref(avatar);
 const imgSrc = ref('');
@@ -152,33 +229,57 @@ const cropImg = ref('');
 const dialogVisible = ref(false);
 const cropper: any = ref();
 
-const showDialog = () => {
-	dialogVisible.value = true;
-	imgSrc.value = avatarImg.value;
+// photo
+interface userphoto{
+  photo: string;
+}
+const userphoto1 = reactive<userphoto>({photo:""});
+const userPhoto= () => {
+  request
+    .get('/users/'+user_id)
+    .then((res) => {
+      ElMessage.success("successfully get data");
+      userphoto1.photo= res.data.photo;
+    })
+    .catch((e) => {
+      ElMessage.error("failed to get data");
+    });
 };
+userPhoto();
 
-const setImage = (e: any) => {
-	const file = e.target.files[0];
-	if (!file.type.includes('image/')) {
-		return;
-	}
-	const reader = new FileReader();
-	reader.onload = (event: any) => {
-		dialogVisible.value = true;
-		imgSrc.value = event.target.result;
-		cropper.value && cropper.value.replace(event.target.result);
-	};
-	reader.readAsDataURL(file);
+//watched data
+interface Projects {
+  name: string;
+  description: string;
+}
+const tableData = ref<Projects[]>([]);
+const projectTotal = ref(0);
+// 获取表格数据,count project number
+const getData = () => {
+  request
+    .get("/projects", {
+      params: {
+        member: user_id,
+      },
+    })
+    .then((res) => {
+      ElMessage.success("successfully get data");
+      tableData.value = res.data;
+	  projectTotal.value = res.data.length;
+    })
+    .catch((e) => {
+      ElMessage.error("failed to get data");
+    });
 };
+getData();
+const handleClick = (row: any, event: any, column: any) => {
+  console.log(row);
+  localStorage.setItem('project_id', row.id)
+  router.push('/timeline');
+}
 
-const cropImage = () => {
-	cropImg.value = cropper.value.getCroppedCanvas().toDataURL();
-};
 
-const saveAvatar = () => {
-	avatarImg.value = cropImg.value;
-	dialogVisible.value = false;
-};
+
 
 const username: string | null = localStorage.getItem('ms_username');
 const message: number = 2;
@@ -260,6 +361,10 @@ const handleCommand = (command: string) => {
 	top: 0;
 	opacity: 0;
 	cursor: pointer;
+}
+.clearfix{
+	font-size: 30px;
+	font-weight: 500;
 }
 /*以下是header的style*/
 .header {

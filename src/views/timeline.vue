@@ -1,63 +1,117 @@
 <template>
-  <el-header height="15%">
+  <div class="container">
+    <el-header height="130px">
     <div style="float: left; width: 80%;">
-      <div style="padding: 0px 10px;"><h1>{{project_name}}</h1></div>
-      <el-card style="width: 30%; padding: 5px">{{discription}}</el-card>
+      <div style="padding: 10px"><h1>{{project_name}}</h1></div>
+      <el-card style="width: 30%">{{description}}</el-card>
     </div>
   </el-header>
+  <el-divider></el-divider>
   <el-main>
     <div style="width: 65%; float: left">
       <el-timeline>
-        <el-timeline-item timestamp="2022/11/12" placement="top">
+        <el-timeline-item placement="top" :timestamp="formatDate(item.created)" v-for="(item, index) in tableData" :key="index">
           <el-card>
-            <h4>更新项目</h4>
-            <p>lng2020 committed 2022/11/8 20:46</p>
-          </el-card>
-        </el-timeline-item>
-        <el-timeline-item timestamp="2022/11/6" placement="top">
-          <el-card>
-            <h4>更新项目</h4>
-            <p>lng2020 committed 2022/11/5 20:46</p>
-          </el-card>
-        </el-timeline-item>
-        <el-timeline-item timestamp="2022/11/2" placement="top">
-          <el-card>
-            <h4>创建项目</h4>
-            <p>Tom committed 2022/11/2 20:46</p>
+            <p>{{formatTimelineItem(item)}}</p>
           </el-card>
         </el-timeline-item>
       </el-timeline>
     </div>
+    <div style="width: 23%; float: left; margin: 0 30px">
+      <div style="width: 100%; background-color: #e6e6e6; height: 30px; padding: 5px; margin: 5px;">
+        <h4>Team</h4>
+      </div>
+      <div v-for="member in members" :key="member.id" class="block">
+          <el-avatar shape="square" :src="avaterURL[member.id]"/>
+      </div>
+    </div>
   </el-main>
+
+  </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, reactive } from "vue";
+import request from "../utils/request"
+import { ElMessage } from "element-plus";
+import { stringifyExpression } from "@vue/compiler-core";
 
-const tableData = reactive([
-  {
-    date: "2016-05-03",
-    name: "Tom",
-    address: "No. 189, Grove St, Los Angeles",
-  },
-  {
-    date: "2016-05-02",
-    name: "Tom",
-    address: "No. 189, Grove St, Los Angeles",
-  },
-  {
-    date: "2016-05-04",
-    name: "Tom",
-    address: "No. 189, Grove St, Los Angeles",
-  },
-  {
-    date: "2016-05-01",
-    name: "Tom",
-    address: "No. 189, Grove St, Los Angeles",
-  },
-]);
-const project_name = ref("my first project")
-const discription = ref("this is discription of my first project")
+interface tableItem{
+  data: Object,
+  id: number,
+  content_type: number,
+  namespace: string,
+  event_type: string,
+  project: number,
+  data_content_type: number,
+  created: string
+}
+let tableData = reactive<tableItem[]>([]);
+
+const avaterURL = [
+  "https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png", 
+]
+
+let project_name = ref("")
+let description = ref("")
+let members = reactive([])
+
+const project_id = localStorage.getItem("project_id")
+const token = localStorage.getItem("token")
+request.get('/projects/'+project_id, {headers:{Authorization:`Bearer ${token}`}}).then((res) => {
+    project_name.value = res.data.name
+    description.value = res.data.description
+    Object.assign(members, res.data.members)
+    ElMessage.success('获取后台数据成功');
+  }).catch((e) => {
+    ElMessage.error('获取后台数据失败');
+})
+request.get('timeline/project/'+project_id, {headers:{Authorization:`Bearer ${token}`}}).then((res) => {
+  Object.assign(tableData, res.data)
+  ElMessage.success('获取后台数据成功');
+}).catch((e) => {
+  ElMessage.error('获取后台数据失败');
+})
+
+const parseEventType = (event_type:any) =>{
+  event_type = event_type.split(".")
+  return {
+      section: event_type[0],
+      obj: event_type[1],
+      type: event_type[2]
+  }
+}
+
+const formatTimelineItem = (event: tableItem) =>{
+  let formatString = ""
+  formatString += event.data.user.name
+  formatString += " has "
+  formatString += parseEventType(event.event_type)["type"]
+  formatString += " "
+  if (event.data[parseEventType(event.event_type)["obj"]]!=undefined){
+    formatString += parseEventType(event.event_type)["obj"]
+    formatString += event.data[parseEventType(event.event_type)["obj"]].id
+    formatString += " "
+    formatString += event.data[parseEventType(event.event_type)["obj"]].subject
+  }
+  return formatString
+}
+
+function formatDate(dateString: string) {
+  let date = new Date(dateString)
+  var monthNames = [
+    "Jan", "Feb", "Mar",
+    "Apr", "May", "Jun", "Jul",
+    "Aug", "Sep", "Oct",
+    "Nov", "Dec"
+  ];
+
+  var day = date.getDate();
+  var monthIndex = date.getMonth();
+  var year = date.getFullYear();
+
+  return monthNames[monthIndex] + ' ' +day + ' ' + year;
+}
 
 </script>
 
@@ -205,11 +259,8 @@ const discription = ref("this is discription of my first project")
 }
 
 .block {
-  padding: 30px 0;
-  text-align: center;
-  border-right: solid 1px var(--el-border-color);
-  width: 20%;
-  box-sizing: border-box;
-  vertical-align: top;
+  margin: 5px 5px;
+  display: inline;
+  width: 40px;
 }
 </style>
